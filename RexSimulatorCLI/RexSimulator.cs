@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -44,6 +45,7 @@ namespace RexSimulatorCLI
 
 			timer.Enabled = true;
 
+
 			//Set up system interfaces
 			mSerialPort1 = new BasicSerialPort(mRexBoard.Serial1);
 
@@ -56,7 +58,7 @@ namespace RexSimulatorCLI
 			int stepsPerSleep = 0;
 			
 			while (true)
-			{				
+			{
 				if (mRunning)
 				{
 					this.Step();
@@ -74,7 +76,14 @@ namespace RexSimulatorCLI
 							stepsPerSleep = Math.Min(Math.Max(0, stepsPerSleep), 1000000);
 						}
 					}
+
+					if (Console.KeyAvailable)
+					{
+						char key = Console.ReadKey(true).KeyChar;
+						mRexBoard.Serial1.SendAsync(key);
+					}
 				}
+
 			}
 		}
 
