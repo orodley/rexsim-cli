@@ -1,16 +1,12 @@
-using System;
-
-using RexSimulator.Hardware;
-
 namespace RexSimulatorCLI
 {
 	class Program
 	{
-		private static RexSimulator mRexSim;
+		private static RexSimulator _rexSim;
 
 		public static void Main (string[] args)
 		{
-			mRexSim = new RexSimulator();
+			_rexSim = new RexSimulator();
 		}
 	}
 }

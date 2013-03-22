@@ -9,36 +9,38 @@ namespace RexSimulatorCLI
 {
     public class RexSimulator
     {
-        private const long TARGET_CLOCK_RATE = 4000000;
+        private const long TargetClockRate = 4000000;
 
-        private RexBoard mRexBoard;
-        private Thread mCPUWorker;
-        private Thread mInputWorker;
+        private readonly RexBoard _rexBoard;
+        private readonly Thread _cpuWorker;
+        private readonly Thread _inputWorker;
 
-        private BasicSerialPort mSerialPort1;
+        private BasicSerialPort _serialPort1;
         //private BasicSerialPort mSerialPort2;
                 
-        private long mLastTickCount = 0;
-        private DateTime mLastTickCountUpdate = DateTime.Now;
-        public double mLastClockRate = TARGET_CLOCK_RATE;
-        private double mLastClockRateSmoothed = TARGET_CLOCK_RATE;
-        private bool mThrottleCpu = true;
+        private long _lastTickCount = 0;
+        private DateTime _lastTickCountUpdate = DateTime.Now;
+        public double LastClockRate = TargetClockRate;
+        private double _lastClockRateSmoothed = TargetClockRate;
+        private bool _throttleCpu = true;
         
-        private bool mRunning = true;
-        private bool mStepping = false;
+        private bool _running = true;
+        private bool _stepping = false;
 
         public RexSimulator ()
         {
-            mRexBoard = new RexBoard();
+            _rexBoard = new RexBoard();
 
             //Load WRAMPmon into ROM
-            Stream wmon = new MemoryStream(Encoding.ASCII.GetBytes(File.ReadAllText(Path.Combine("Resources", "monitor.srec"))));
-            mRexBoard.LoadSrec(wmon);
+            Stream wmon =
+                new MemoryStream(Encoding.ASCII.GetBytes(
+                    File.ReadAllText(Path.Combine("Resources", "monitor.srec"))));
+            _rexBoard.LoadSrec(wmon);
             wmon.Close();
             
             //Set up the worker threads
-            mCPUWorker = new Thread(CPUWorker);
-            mInputWorker = new Thread(InputWorker);
+            _cpuWorker = new Thread(CPUWorker);
+            _inputWorker = new Thread(InputWorker);
 
             // Set up the timer
             // Qualified name is used since System.Threading also contains a class called "Timer"
@@ -48,10 +50,10 @@ namespace RexSimulatorCLI
             timer.Enabled = true;
 
             //Set up system interfaces
-            mSerialPort1 = new BasicSerialPort(mRexBoard.Serial1);
+            _serialPort1 = new BasicSerialPort(_rexBoard.Serial1);
 
-            mCPUWorker.Start();
-            mInputWorker.Start();
+            _cpuWorker.Start();
+            _inputWorker.Start();
         }
 
         private void CPUWorker()
@@ -61,19 +63,19 @@ namespace RexSimulatorCLI
             
             while (true)
             {
-                if (mRunning)
+                if (_running)
                 {
-                    this.Step();
-                    mRunning ^= mStepping; //stop the CPU running if this is only supposed to do a single step.
+                    Step();
+                    _running ^= _stepping; //stop the CPU running if this is only supposed to do a single step.
                     
                     //Slow the processor down if need be
-                    if (mThrottleCpu)
+                    if (_throttleCpu)
                     {
                         if (stepCount++ >= stepsPerSleep)
                         {
                             stepCount -= stepsPerSleep;
                             Thread.Sleep(5);
-                            int diff = (int)mLastClockRate - (int)TARGET_CLOCK_RATE;
+                            int diff = (int)LastClockRate - (int)TargetClockRate;
                             stepsPerSleep -= diff / 10000;
                             stepsPerSleep = Math.Min(Math.Max(0, stepsPerSleep), 1000000);
                         }
@@ -86,12 +88,12 @@ namespace RexSimulatorCLI
         {
             while (true)
             {
-                if (mRunning)
+                if (_running)
                 {
                     if (Console.KeyAvailable)
                     {
                         char key = Console.ReadKey(true).KeyChar;
-                        mRexBoard.Serial1.SendAsync(key);
+                        _rexBoard.Serial1.SendAsync(key);
                     }
                 }
             }
@@ -104,21 +106,21 @@ namespace RexSimulatorCLI
         /// <param name="e"></param>
         private void timer_Elapsed(object sender, EventArgs e)
         {
-            long ticksSinceLastUpdate = mRexBoard.TickCounter - mLastTickCount;
-            TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(mLastTickCountUpdate);
-            mLastTickCount = mRexBoard.TickCounter;
-            mLastTickCountUpdate = DateTime.Now;
+            long ticksSinceLastUpdate = _rexBoard.TickCounter - _lastTickCount;
+            TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(_lastTickCountUpdate);
+            _lastTickCount = _rexBoard.TickCounter;
+            _lastTickCountUpdate = DateTime.Now;
 
             double rate = 0.5;
-            mLastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
-            mLastClockRateSmoothed = mLastClockRateSmoothed * (1.0 - rate) + mLastClockRate * rate;
+            LastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
+            _lastClockRateSmoothed = _lastClockRateSmoothed * (1.0 - rate) + LastClockRate * rate;
 
-            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)", mLastClockRateSmoothed / 1e6, mLastClockRateSmoothed * 100 / TARGET_CLOCK_RATE);
+            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate);
         }
 
         public void Step()
         {
-            while (!mRexBoard.Tick()) ;
+            while (!_rexBoard.Tick()) { }
         }
     }
 }
