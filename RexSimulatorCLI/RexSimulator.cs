@@ -12,7 +12,8 @@ namespace RexSimulatorCLI
         private const long TARGET_CLOCK_RATE = 4000000;
 
         private RexBoard mRexBoard;
-        private Thread mWorker;
+        private Thread mCPUWorker;
+        private Thread mInputWorker;
 
         private BasicSerialPort mSerialPort1;
         //private BasicSerialPort mSerialPort2;
@@ -35,8 +36,9 @@ namespace RexSimulatorCLI
             mRexBoard.LoadSrec(wmon);
             wmon.Close();
             
-            //Set up the worker thread
-            mWorker = new Thread(new ThreadStart(Worker));
+            //Set up the worker threads
+            mCPUWorker = new Thread(CPUWorker);
+            mInputWorker = new Thread(InputWorker);
 
             // Set up the timer
             // Qualified name is used since System.Threading also contains a class called "Timer"
@@ -48,10 +50,11 @@ namespace RexSimulatorCLI
             //Set up system interfaces
             mSerialPort1 = new BasicSerialPort(mRexBoard.Serial1);
 
-            mWorker.Start();
+            mCPUWorker.Start();
+            mInputWorker.Start();
         }
 
-        private void Worker()
+        private void CPUWorker()
         {
             int stepCount = 0;
             int stepsPerSleep = 0;
@@ -75,7 +78,16 @@ namespace RexSimulatorCLI
                             stepsPerSleep = Math.Min(Math.Max(0, stepsPerSleep), 1000000);
                         }
                     }
-                    
+                }
+            }
+        }
+
+        private void InputWorker()
+        {
+            while (true)
+            {
+                if (mRunning)
+                {
                     if (Console.KeyAvailable)
                     {
                         char key = Console.ReadKey(true).KeyChar;
