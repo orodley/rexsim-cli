@@ -37,12 +37,12 @@ namespace RexSimulatorCLI
 			//Set up the worker thread
 			mWorker = new Thread(new ThreadStart(Worker));
 
-            // Set up the timer
-            // Qualified name is used since System.Threading also contains a class called "Timer"
-            System.Timers.Timer timer = new System.Timers.Timer();
-            timer.Elapsed += timer_Elapsed;
+			// Set up the timer
+			// Qualified name is used since System.Threading also contains a class called "Timer"
+			System.Timers.Timer timer = new System.Timers.Timer();
+			timer.Elapsed += timer_Elapsed;
 
-            timer.Enabled = true;
+			timer.Enabled = true;
 
 			//Set up system interfaces
 			mSerialPort1 = new BasicSerialPort(mRexBoard.Serial1);
@@ -78,22 +78,22 @@ namespace RexSimulatorCLI
 			}
 		}
 
-        /// <summary>
-        /// Recalculate the simulated CPU clock rate.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void timer_Elapsed(object sender, EventArgs e)
-        {
-            long ticksSinceLastUpdate = mRexBoard.TickCounter - mLastTickCount;
-            TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(mLastTickCountUpdate);
-            mLastTickCount = mRexBoard.TickCounter;
-            mLastTickCountUpdate = DateTime.Now;
+		/// <summary>
+		/// Recalculate the simulated CPU clock rate.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void timer_Elapsed(object sender, EventArgs e)
+		{
+			long ticksSinceLastUpdate = mRexBoard.TickCounter - mLastTickCount;
+			TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(mLastTickCountUpdate);
+			mLastTickCount = mRexBoard.TickCounter;
+			mLastTickCountUpdate = DateTime.Now;
 
-            double rate = 0.5;
-            mLastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
-            mLastClockRateSmoothed = mLastClockRateSmoothed * (1.0 - rate) + mLastClockRate * rate;
-        }
+			double rate = 0.5;
+			mLastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
+			mLastClockRateSmoothed = mLastClockRateSmoothed * (1.0 - rate) + mLastClockRate * rate;
+		}
 
 		public void Step()
 		{
