@@ -8,14 +8,13 @@ namespace RexSimulatorCLI
 {
     public class BasicSerialPort
     {
-        private SerialIO mSerialPort;
+        private readonly SerialIO mSerialPort;
 
         public BasicSerialPort (SerialIO port)
         {
             this.mSerialPort = port;
 
-            mSerialPort.SerialDataTransmitted +=
-                new EventHandler<SerialIO.SerialEventArgs>(mSerialPort_SerialDataTransmitted);
+            mSerialPort.SerialDataTransmitted += mSerialPort_SerialDataTransmitted;
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ namespace RexSimulatorCLI
             mRexBoard = new RexBoard();
 
             //Load WRAMPmon into ROM
-            Stream wmon = new MemoryStream(ASCIIEncoding.ASCII.GetBytes(File.ReadAllText(Path.Combine("Resources", "monitor.srec"))));
+            Stream wmon = new MemoryStream(Encoding.ASCII.GetBytes(File.ReadAllText(Path.Combine("Resources", "monitor.srec"))));
             mRexBoard.LoadSrec(wmon);
             wmon.Close();
             
@@ -40,7 +40,7 @@ namespace RexSimulatorCLI
 
             // Set up the timer
             // Qualified name is used since System.Threading also contains a class called "Timer"
-            System.Timers.Timer timer = new System.Timers.Timer();
+            var timer = new System.Timers.Timer();
             timer.Elapsed += timer_Elapsed;
 
             timer.Enabled = true;
@@ -75,7 +75,7 @@ namespace RexSimulatorCLI
                             stepsPerSleep = Math.Min(Math.Max(0, stepsPerSleep), 1000000);
                         }
                     }
-
+                    
                     if (Console.KeyAvailable)
                     {
                         char key = Console.ReadKey(true).KeyChar;
@@ -100,6 +100,8 @@ namespace RexSimulatorCLI
             double rate = 0.5;
             mLastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
             mLastClockRateSmoothed = mLastClockRateSmoothed * (1.0 - rate) + mLastClockRate * rate;
+
+            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)", mLastClockRateSmoothed / 1e6, mLastClockRateSmoothed * 100 / TARGET_CLOCK_RATE);
         }
 
         public void Step()
