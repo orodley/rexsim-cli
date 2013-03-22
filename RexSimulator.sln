@@ -13,10 +13,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Debug|x86.ActiveCfg = Debug|x86
-		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Debug|x86.Build.0 = Debug|x86
-		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Release|x86.ActiveCfg = Release|x86
-		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Release|x86.Build.0 = Release|x86
 		{94789FFC-1AE2-4B92-8048-FD8B05BF8A7F}.Debug|x86.ActiveCfg = Debug|x86
 		{94789FFC-1AE2-4B92-8048-FD8B05BF8A7F}.Debug|x86.Build.0 = Debug|x86
 		{94789FFC-1AE2-4B92-8048-FD8B05BF8A7F}.Release|x86.ActiveCfg = Release|x86
@@ -25,6 +21,13 @@ Global
 		{A5D9702C-A809-49EC-B432-9B3EFF19D68A}.Debug|x86.Build.0 = Debug|x86
 		{A5D9702C-A809-49EC-B432-9B3EFF19D68A}.Release|x86.ActiveCfg = Release|x86
 		{A5D9702C-A809-49EC-B432-9B3EFF19D68A}.Release|x86.Build.0 = Release|x86
+		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Debug|x86.ActiveCfg = Debug|x86
+		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Debug|x86.Build.0 = Debug|x86
+		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Release|x86.ActiveCfg = Release|x86
+		{71851106-FAB2-4E5E-8507-0FDA5F783668}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = RexSimulatorGui\RexSimulatorGui.csproj
@@ -32,8 +35,5 @@ Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
 		Manager = AnkhSVN - Subversion Support for Visual Studio
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

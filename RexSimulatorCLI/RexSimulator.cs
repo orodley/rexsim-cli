@@ -37,6 +37,13 @@ namespace RexSimulatorCLI
 			//Set up the worker thread
 			mWorker = new Thread(new ThreadStart(Worker));
 
+            // Set up the timer
+            // Qualified name is used since System.Threading also contains a class called "Timer"
+            System.Timers.Timer timer = new System.Timers.Timer();
+            timer.Elapsed += timer_Elapsed;
+
+            timer.Enabled = true;
+
 			//Set up system interfaces
 			mSerialPort1 = new BasicSerialPort(mRexBoard.Serial1);
 
@@ -49,13 +56,7 @@ namespace RexSimulatorCLI
 			int stepsPerSleep = 0;
 			
 			while (true)
-			{
-				/*if (mRunning && mRamForm.Breakpoints.Contains(mRexBoard.CPU.PC)) //stop the CPU if a breakpoint has been hit
-				{
-					this.Invoke(new Action(runButton.PerformClick));
-					continue;
-				}*/
-				
+			{				
 				if (mRunning)
 				{
 					this.Step();
@@ -72,18 +73,27 @@ namespace RexSimulatorCLI
 							stepsPerSleep -= diff / 10000;
 							stepsPerSleep = Math.Min(Math.Max(0, stepsPerSleep), 1000000);
 						}
-						
-						/*for (long i = 0; i < mSlowdownCount / 1000000000; i++) ; //dirty cpu cycle-wasting loop                        
-
-                        long diff = (long)mLastClockRate - TARGET_CLOCK_RATE;
-
-                        mSlowdownCount += diff;
-
-                        Thread.Sleep(0); //swap thread out to allow other processes to run.*/
 					}
 				}
 			}
 		}
+
+        /// <summary>
+        /// Recalculate the simulated CPU clock rate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void timer_Elapsed(object sender, EventArgs e)
+        {
+            long ticksSinceLastUpdate = mRexBoard.TickCounter - mLastTickCount;
+            TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(mLastTickCountUpdate);
+            mLastTickCount = mRexBoard.TickCounter;
+            mLastTickCountUpdate = DateTime.Now;
+
+            double rate = 0.5;
+            mLastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
+            mLastClockRateSmoothed = mLastClockRateSmoothed * (1.0 - rate) + mLastClockRate * rate;
+        }
 
 		public void Step()
 		{

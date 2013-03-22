@@ -9,25 +9,23 @@ namespace RexSimulatorCLI
 	public class BasicSerialPort
 	{
 		private SerialIO mSerialPort;
-		private StringBuilder mRecvBuffer;
 
 		public BasicSerialPort (SerialIO port)
 		{
 			this.mSerialPort = port;
-			this.mRecvBuffer = new StringBuilder();
 
-			mSerialPort.SerialDataTransmitted += new EventHandler<SerialIO.SerialEventArgs>(mSerialPort_SerialDataTransmitted);
-
+			mSerialPort.SerialDataTransmitted +=
+                new EventHandler<SerialIO.SerialEventArgs>(mSerialPort_SerialDataTransmitted);
 		}
 
+        /// <summary>
+        /// Write data received from the serial port to stdout
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 		void mSerialPort_SerialDataTransmitted(object sender, SerialIO.SerialEventArgs e)
 		{
-			Console.Write((char)e.Data);
-			/*lock (mRecvBuffer)
-			{
-				//mSerialPort.AckRecv();
-				mRecvBuffer.Append((char)e.Data);
-			}*/
+            Console.Write((char)e.Data);
 		}
 	}
 }
