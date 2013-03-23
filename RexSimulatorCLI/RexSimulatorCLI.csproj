@@ -39,6 +39,7 @@
     <Compile Include="Panels\BasicPanel.cs" />
     <Compile Include="Panels\Panel.cs" />
     <Compile Include="PanelManager.cs" />
+    <Compile Include="Panels\Registers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RexSimulator.cs" />

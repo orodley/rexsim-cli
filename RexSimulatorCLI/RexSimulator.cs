@@ -52,8 +52,10 @@ namespace RexSimulatorCLI
             //Set up system interfaces
             _serialPort1 = new SerialPort1(_rexBoard.Serial1, _rexBoard);
 
+            // Set up panels
             Program.PanelManager.AddPanel("Serial Port 1", _serialPort1);
             Program.PanelManager.AddPanel("SSD", new SSD(_rexBoard));
+            Program.PanelManager.AddPanel("Registers", new Registers(_rexBoard));
 
             _cpuWorker.Start();
             _inputWorker.Start();
