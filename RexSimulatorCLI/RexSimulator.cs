@@ -102,15 +102,30 @@ namespace RexSimulatorCLI
                                 var uploadFileWorker = new Thread(UploadFileWorker);
                                 uploadFileWorker.Start(filename);
                                 break;
+                            // 1-8: Toggling a switch
+                            case '1': ToggleSwitch(0); break;
+                            case '2': ToggleSwitch(1); break;
+                            case '3': ToggleSwitch(2); break;
+                            case '4': ToggleSwitch(3); break;
+                            case '5': ToggleSwitch(4); break;
+                            case '6': ToggleSwitch(5); break;
+                            case '7': ToggleSwitch(6); break;
+                            case '8': ToggleSwitch(7); break;
                         }
                     }
                     else
-                    {
-                        char key = keyPress.KeyChar;
-                        _rexBoard.Serial1.SendAsync(key);
-                    }
+                        _rexBoard.Serial1.SendAsync(keyPress.KeyChar);
                 }
             }
+        }
+
+        /// <summary>
+        /// Toggle the "switchNum"th switch from the left
+        /// </summary>
+        /// <param name="switchNum"></param>
+        private void ToggleSwitch(int switchNum)
+        {
+            _rexBoard.Parallel.Switches ^= (128u >> switchNum);
         }
 
         /// <summary>
