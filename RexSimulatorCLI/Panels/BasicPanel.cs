@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace RexSimulatorCLI
+namespace RexSimulatorCLI.Panels
 {
-    class BasicPanel : Panel
+    public class BasicPanel : Panel
     {
         public BasicPanel()
         {

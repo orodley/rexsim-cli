@@ -1,9 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using RexSimulator.Hardware;
+using RexSimulatorCLI.Panels;
 
 namespace RexSimulatorCLI
 {
@@ -14,9 +14,7 @@ namespace RexSimulatorCLI
         private readonly RexBoard _rexBoard;
         private readonly Thread _cpuWorker;
         private readonly Thread _inputWorker;
-
-        private readonly PanelManager _panelManager;
-
+        
         private SerialPort1 _serialPort1;
         //private BasicSerialPort mSerialPort2;
                 
@@ -33,7 +31,6 @@ namespace RexSimulatorCLI
         public RexSimulator ()
         {
             _rexBoard = new RexBoard();
-            _panelManager = new PanelManager();
 
             //Load WRAMPmon into ROM
             Stream wmon =
@@ -54,9 +51,9 @@ namespace RexSimulatorCLI
 
             //Set up system interfaces
             _serialPort1 = new SerialPort1(_rexBoard.Serial1, _rexBoard);
-            _panelManager.AddPanel("Serial Port 1", _serialPort1);
 
-            _panelManager.AddPanel("Test Panel", new BasicPanel());
+            Program.PanelManager.AddPanel("Serial Port 1", _serialPort1);
+            Program.PanelManager.AddPanel("SSD", new SSD(_rexBoard));
 
             _cpuWorker.Start();
             _inputWorker.Start();
@@ -98,7 +95,7 @@ namespace RexSimulatorCLI
                 {
                     var keyPress = Console.ReadKey(true);
 
-                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.S)
+                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.T)
                     {
                         switch (Console.ReadKey(true).KeyChar)
                         {
@@ -117,16 +114,16 @@ namespace RexSimulatorCLI
                     if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
                              keyPress.Key == ConsoleKey.RightArrow)
                     {
-                        _panelManager.MoveToNextStream();
+                        Program.PanelManager.MoveToNextPanel();
                     }
                     else if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
                              keyPress.Key == ConsoleKey.LeftArrow)
                     {
-                        _panelManager.MoveToPrevStream();
+                        Program.PanelManager.MoveToPrevPanel();
                     }
                     else
                     {
-                        _panelManager.SendInputToActiveStream(keyPress);
+                        Program.PanelManager.SendInputToActivePanel(keyPress);
                     }
                 }
             }
@@ -148,7 +145,7 @@ namespace RexSimulatorCLI
             LastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
             _lastClockRateSmoothed = _lastClockRateSmoothed * (1.0 - rate) + LastClockRate * rate;
 
-            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%) | Panel: {2}", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate, _panelManager.ActivePanel);
+            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%) | Panel: {2}", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate, Program.PanelManager.ActivePanel.Name);
         }
 
         /// <summary>

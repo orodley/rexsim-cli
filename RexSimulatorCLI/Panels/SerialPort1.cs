@@ -4,7 +4,7 @@ using System.Threading;
 using RexSimulator.Hardware;
 using RexSimulator.Hardware.Rex;
 
-namespace RexSimulatorCLI
+namespace RexSimulatorCLI.Panels
 {
     public class SerialPort1 : Panel
     {
@@ -27,6 +27,7 @@ namespace RexSimulatorCLI
                 switch (Console.ReadKey(true).KeyChar)
                 {
                     case 's': // Sending an S-Record
+                        Write("Enter .srec to send: ");
                         var filename = Console.ReadLine();
                         var uploadFileWorker = new Thread(UploadFileWorker);
                         uploadFileWorker.Start(filename);
@@ -41,8 +42,12 @@ namespace RexSimulatorCLI
         /// </summary>
         private void UploadFileWorker(object filename)
         {
-            var reader = new StreamReader((string)filename);
+            if (!File.Exists((string) filename))
+            {
+                return;
+            }
 
+            var reader = new StreamReader((string)filename);
             while (!reader.EndOfStream)
             {
                 string line = reader.ReadLine();
@@ -52,7 +57,6 @@ namespace RexSimulatorCLI
                 }
                 _rexBoard.Serial1.Send('\n');
             }
-
             reader.Close();
         }
 
