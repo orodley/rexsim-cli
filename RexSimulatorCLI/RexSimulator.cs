@@ -15,9 +15,9 @@ namespace RexSimulatorCLI
         private readonly Thread _cpuWorker;
         private readonly Thread _inputWorker;
 
-        private readonly StreamManager _streamManager;
+        private readonly PanelManager _panelManager;
 
-        private BasicSerialPort _serialPort1;
+        private SerialPort1 _serialPort1;
         //private BasicSerialPort mSerialPort2;
                 
         private long _lastTickCount = 0;
@@ -33,7 +33,7 @@ namespace RexSimulatorCLI
         public RexSimulator ()
         {
             _rexBoard = new RexBoard();
-            _streamManager = new StreamManager();
+            _panelManager = new PanelManager();
 
             //Load WRAMPmon into ROM
             Stream wmon =
@@ -53,8 +53,10 @@ namespace RexSimulatorCLI
             timer.Enabled = true;
 
             //Set up system interfaces
-            var s = _streamManager.CreateStream("Serial Port 1");
-            _serialPort1 = new BasicSerialPort(_rexBoard.Serial1, s);
+            _serialPort1 = new SerialPort1(_rexBoard.Serial1, _rexBoard);
+            _panelManager.AddPanel("Serial Port 1", _serialPort1);
+
+            _panelManager.AddPanel("Test Panel", new BasicPanel());
 
             _cpuWorker.Start();
             _inputWorker.Start();
@@ -96,16 +98,10 @@ namespace RexSimulatorCLI
                 {
                     var keyPress = Console.ReadKey(true);
 
-                    // Handle Ctrl+A [somekey]
-                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.A)
+                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.S)
                     {
                         switch (Console.ReadKey(true).KeyChar)
                         {
-                            case 's': // Sending an S-Record
-                                var filename = Console.ReadLine();
-                                var uploadFileWorker = new Thread(UploadFileWorker);
-                                uploadFileWorker.Start(filename);
-                                break;
                             // 1-8: Toggling a switch
                             case '1': ToggleSwitch(0); break;
                             case '2': ToggleSwitch(1); break;
@@ -117,39 +113,23 @@ namespace RexSimulatorCLI
                             case '8': ToggleSwitch(7); break;
                         }
                     }
+                    // Handle Ctrl+A [somekey]
+                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
+                             keyPress.Key == ConsoleKey.RightArrow)
+                    {
+                        _panelManager.MoveToNextStream();
+                    }
+                    else if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
+                             keyPress.Key == ConsoleKey.LeftArrow)
+                    {
+                        _panelManager.MoveToPrevStream();
+                    }
                     else
-                        _rexBoard.Serial1.SendAsync(keyPress.KeyChar);
+                    {
+                        _panelManager.SendInputToActiveStream(keyPress);
+                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// Toggle the "switchNum"th switch from the left
-        /// </summary>
-        /// <param name="switchNum"></param>
-        private void ToggleSwitch(int switchNum)
-        {
-            _rexBoard.Parallel.Switches ^= (128u >> switchNum);
-        }
-
-        /// <summary>
-        /// Sends a file through the serial port.
-        /// </summary>
-        private void UploadFileWorker(object filename)
-        {
-            var reader = new StreamReader((string)filename);
-
-            while (!reader.EndOfStream)
-            {
-                string line = reader.ReadLine();
-                foreach (char c in line)
-                {
-                    _rexBoard.Serial1.Send(c);
-                }
-                _rexBoard.Serial1.Send('\n');
-            }
-
-            reader.Close();
         }
 
         /// <summary>
@@ -168,7 +148,16 @@ namespace RexSimulatorCLI
             LastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
             _lastClockRateSmoothed = _lastClockRateSmoothed * (1.0 - rate) + LastClockRate * rate;
 
-            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate);
+            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%) | Panel: {2}", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate, _panelManager.ActivePanel);
+        }
+
+        /// <summary>
+        /// Toggle the "switchNum"th switch from the left
+        /// </summary>
+        /// <param name="switchNum"></param>
+        private void ToggleSwitch(int switchNum)
+        {
+            _rexBoard.Parallel.Switches ^= (128u >> switchNum);
         }
 
         public void Step()

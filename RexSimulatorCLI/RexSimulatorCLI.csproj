@@ -36,12 +36,13 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BasicPanel.cs" />
     <Compile Include="Panel.cs" />
-    <Compile Include="StreamManager.cs" />
+    <Compile Include="PanelManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RexSimulator.cs" />
-    <Compile Include="BasicSerialPort.cs" />
+    <Compile Include="SerialPort1.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

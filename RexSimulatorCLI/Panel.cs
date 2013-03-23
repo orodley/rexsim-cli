@@ -6,25 +6,33 @@ using System.IO;
 
 namespace RexSimulatorCLI
 {
+    public delegate void InputRecievedHandler(ConsoleKeyInfo info);
+
     public abstract class Panel
     {
-        private StreamWriter _stream;
+        private StreamWriter _streamWriter;
+        public readonly Stream BaseStream;
 
-        protected Panel(Stream s)
+        public event InputRecievedHandler InputRecieved;
+
+        protected Panel()
         {
-            _stream = new StreamWriter(s);
+            BaseStream = new MemoryStream();
+            _streamWriter = new StreamWriter(BaseStream);
         }
 
         public void Write(char c)
         {
-            _stream.Write(c);
-            _stream.Flush();
+            _streamWriter.Write(c);
+            _streamWriter.Flush();
         }
 
-        public void Write(string s)
+        public void SendInput(ConsoleKeyInfo info)
         {
-            _stream.Write(s);
-            _stream.Flush();
+            if (InputRecieved != null)
+            {
+                InputRecieved(info);
+            }
         }
     }
 }
