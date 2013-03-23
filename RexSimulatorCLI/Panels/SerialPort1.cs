@@ -34,7 +34,8 @@ namespace RexSimulatorCLI.Panels
                         break;
                 }
             }
-            _rexBoard.Serial1.SendAsync(info.KeyChar);
+            else
+                _rexBoard.Serial1.SendAsync(info.KeyChar);
         }
 
         /// <summary>
