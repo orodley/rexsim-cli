@@ -15,6 +15,8 @@ namespace RexSimulatorCLI
         private readonly Thread _cpuWorker;
         private readonly Thread _inputWorker;
 
+        private readonly StreamManager _streamManager;
+
         private BasicSerialPort _serialPort1;
         //private BasicSerialPort mSerialPort2;
                 
@@ -25,11 +27,13 @@ namespace RexSimulatorCLI
         private bool _throttleCpu = true;
         
         private bool _running = true;
+
         private bool _stepping = false;
 
         public RexSimulator ()
         {
             _rexBoard = new RexBoard();
+            _streamManager = new StreamManager();
 
             //Load WRAMPmon into ROM
             Stream wmon =
@@ -46,11 +50,11 @@ namespace RexSimulatorCLI
             // Qualified name is used since System.Threading also contains a class called "Timer"
             var timer = new System.Timers.Timer();
             timer.Elapsed += timer_Elapsed;
-
             timer.Enabled = true;
 
             //Set up system interfaces
-            _serialPort1 = new BasicSerialPort(_rexBoard.Serial1);
+            var s = _streamManager.CreateStream("Serial Port 1");
+            _serialPort1 = new BasicSerialPort(_rexBoard.Serial1, s);
 
             _cpuWorker.Start();
             _inputWorker.Start();

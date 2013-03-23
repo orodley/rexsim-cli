@@ -1,17 +1,17 @@
 using System;
+using System.IO;
 
 using RexSimulator.Hardware.Rex;
 
 namespace RexSimulatorCLI
 {
-    public class BasicSerialPort
+    public class BasicSerialPort : Panel
     {
         private readonly SerialIO _serialPort;
 
-        public BasicSerialPort (SerialIO port)
+        public BasicSerialPort (SerialIO port, Stream s) : base(s)
         {
             _serialPort = port;
-
             _serialPort.SerialDataTransmitted += serialPort_SerialDataTransmitted;
         }
 
@@ -22,7 +22,7 @@ namespace RexSimulatorCLI
         /// <param name="e"></param>
         void serialPort_SerialDataTransmitted(object sender, SerialIO.SerialEventArgs e)
         {
-            Console.Write((char)e.Data);
+            Write((char)e.Data);
         }
     }
 }
