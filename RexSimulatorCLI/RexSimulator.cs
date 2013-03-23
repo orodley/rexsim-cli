@@ -88,15 +88,47 @@ namespace RexSimulatorCLI
         {
             while (true)
             {
-                if (_running)
+                if (_running && Console.KeyAvailable)
                 {
-                    if (Console.KeyAvailable)
+                    var keyPress = Console.ReadKey(true);
+
+                    // Handle Ctrl+A [somekey]
+                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.A)
                     {
-                        char key = Console.ReadKey(true).KeyChar;
-                        _rexBoard.Serial1.SendAsync(key);
+                        switch (Console.ReadKey(true).KeyChar)
+                        {
+                            case 's': // Sending an S-Record
+                                var filename = Console.ReadLine();
+                                var uploadFileWorker = new Thread(UploadFileWorker);
+                                uploadFileWorker.Start(filename);
+                                break;
+                        }
                     }
+
+                    char key = keyPress.KeyChar;
+                    _rexBoard.Serial1.SendAsync(key);
                 }
             }
+        }
+
+        /// <summary>
+        /// Sends a file through the serial port.
+        /// </summary>
+        private void UploadFileWorker(object filename)
+        {
+            var reader = new StreamReader((string)filename);
+
+            while (!reader.EndOfStream)
+            {
+                string line = reader.ReadLine();
+                foreach (char c in line)
+                {
+                    _rexBoard.Serial1.Send(c);
+                }
+                _rexBoard.Serial1.Send('\n');
+            }
+
+            reader.Close();
         }
 
         /// <summary>
