@@ -104,9 +104,11 @@ namespace RexSimulatorCLI
                                 break;
                         }
                     }
-
-                    char key = keyPress.KeyChar;
-                    _rexBoard.Serial1.SendAsync(key);
+                    else
+                    {
+                        char key = keyPress.KeyChar;
+                        _rexBoard.Serial1.SendAsync(key);
+                    }
                 }
             }
         }
