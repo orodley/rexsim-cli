@@ -25,6 +25,7 @@ namespace RexSimulatorCLI.Panels
 
         private void _updateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            //Clear();
             for (uint register = 0; register < 16; register++)
             {
                 SetCursorPosition(0, (int)register);
