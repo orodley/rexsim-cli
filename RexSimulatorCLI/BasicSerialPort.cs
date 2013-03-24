@@ -1,15 +1,11 @@
 using System;
-using System.IO;
-using System.Threading;
-using RexSimulator.Hardware;
 using RexSimulator.Hardware.Rex;
 
-namespace RexSimulatorCLI.Panels
+namespace RexSimulatorCLI
 {
     public class BasicSerialPort
     {
         private readonly SerialIO _serialPort;
-        private readonly RexBoard _rexBoard;
 
         public BasicSerialPort (SerialIO port)
         {

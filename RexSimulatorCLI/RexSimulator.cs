@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using RexSimulator.Hardware;
-using RexSimulatorCLI.Panels;
 
 namespace RexSimulatorCLI
 {
@@ -16,7 +15,6 @@ namespace RexSimulatorCLI
         private readonly Thread _inputWorker;
         
         private readonly BasicSerialPort _serialPort1;
-        //private BasicSerialPort mSerialPort2;
                 
         private long _lastTickCount = 0;
         private DateTime _lastTickCountUpdate = DateTime.Now;
@@ -114,7 +112,7 @@ namespace RexSimulatorCLI
                             switch (Console.ReadKey(true).KeyChar)
                             {
                                 case 's': // Sending an S-Record
-                                    Console.Write("Enter .srec to send: ");
+                                    Console.Write(@"Enter .srec to send: ");
                                     var filename = Console.ReadLine();
                                     var uploadFileWorker = new Thread(UploadFileWorker);
                                     uploadFileWorker.Start(filename);
@@ -163,7 +161,7 @@ namespace RexSimulatorCLI
             _lastTickCount = _rexBoard.TickCounter;
             _lastTickCountUpdate = DateTime.Now;
 
-            double rate = 0.5;
+            const double rate = 0.5;
             LastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
             _lastClockRateSmoothed = _lastClockRateSmoothed * (1.0 - rate) + LastClockRate * rate;
 
