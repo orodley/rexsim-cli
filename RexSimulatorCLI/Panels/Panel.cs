@@ -38,6 +38,10 @@ namespace RexSimulatorCLI.Panels
         public void Clear()
         {
             SetUpBuffer();
+            if (Program.PanelManager.ActivePanel == this)
+            {
+                Console.Clear();
+            }
         }
 
         public void SendInput(ConsoleKeyInfo info)
@@ -60,9 +64,8 @@ namespace RexSimulatorCLI.Panels
                     //Are we the active panel?
                     if (Program.PanelManager.ActivePanel == this)
                     {
-                        Console.SetOut(Program.stdout);
                         Console.SetCursorPosition(CursorLeft, CursorTop + 1);
-                        Console.WriteLine();
+                        Console.Write('\n');
                     }
                     //Increment cursor position
                     CursorTop++;
@@ -79,9 +82,8 @@ namespace RexSimulatorCLI.Panels
                     continue;
                 }
 
-                if (Program.PanelManager.ActivePanel == this)
+                if (Program.PanelManager.ActivePanel == this && BufferedData[CursorTop][CursorLeft] != c)
                 {
-                    Console.SetOut(Program.stdout);
                     Console.SetCursorPosition(CursorLeft, CursorTop);
                     Console.Write(c);
                 }
@@ -97,7 +99,6 @@ namespace RexSimulatorCLI.Panels
 
         public void SendBufferToStdout()
         {
-            Console.SetOut(Program.stdout);
             Console.Clear();
             //Loop through buffer
             for (int top = 0; top < BufferedData.Count; top++)

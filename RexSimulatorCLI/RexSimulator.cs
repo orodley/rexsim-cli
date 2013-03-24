@@ -114,12 +114,12 @@ namespace RexSimulatorCLI
                     }
                     // Handle Ctrl+A [somekey]
                     if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
-                             keyPress.Key == ConsoleKey.RightArrow)
+                             keyPress.Key == ConsoleKey.OemPeriod)
                     {
                         Program.PanelManager.MoveToNextPanel();
                     }
                     else if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
-                             keyPress.Key == ConsoleKey.LeftArrow)
+                             keyPress.Key == ConsoleKey.OemComma)
                     {
                         Program.PanelManager.MoveToPrevPanel();
                     }

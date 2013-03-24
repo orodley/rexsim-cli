@@ -14,7 +14,8 @@ namespace RexSimulatorCLI
 		{
             //Set up console
             Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
-            stdout = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
+            stdout = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true, NewLine = "\n" };
+            Console.SetOut(stdout);
 
             PanelManager = new PanelManager();
 			_rexSim = new RexSimulator();
