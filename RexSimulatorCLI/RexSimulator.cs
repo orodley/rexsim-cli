@@ -15,7 +15,7 @@ namespace RexSimulatorCLI
         private readonly Thread _cpuWorker;
         private readonly Thread _inputWorker;
         
-        private SerialPort1 _serialPort1;
+        private readonly BasicSerialPort _serialPort1;
         //private BasicSerialPort mSerialPort2;
                 
         private long _lastTickCount = 0;
@@ -50,12 +50,7 @@ namespace RexSimulatorCLI
             timer.Enabled = true;
 
             //Set up system interfaces
-            _serialPort1 = new SerialPort1(_rexBoard.Serial1, _rexBoard);
-
-            // Set up panels
-            Program.PanelManager.AddPanel("Serial Port 1", _serialPort1);
-            Program.PanelManager.AddPanel("SSD", new SSD(_rexBoard));
-            Program.PanelManager.AddPanel("Registers", new Registers(_rexBoard));
+            _serialPort1 = new BasicSerialPort(_rexBoard.Serial1);
 
             _cpuWorker.Start();
             _inputWorker.Start();
@@ -95,40 +90,65 @@ namespace RexSimulatorCLI
             {
                 if (_running && Console.KeyAvailable)
                 {
-                    var keyPress = Console.ReadKey(true);
+                    var keypress = Console.ReadKey(true);
 
-                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) && keyPress.Key == ConsoleKey.T)
+                    if (keypress.Modifiers.HasFlag(ConsoleModifiers.Control))
                     {
-                        switch (Console.ReadKey(true).KeyChar)
+                        if (keypress.Key == ConsoleKey.T)
                         {
-                            // 1-8: Toggling a switch
-                            case '1': ToggleSwitch(0); break;
-                            case '2': ToggleSwitch(1); break;
-                            case '3': ToggleSwitch(2); break;
-                            case '4': ToggleSwitch(3); break;
-                            case '5': ToggleSwitch(4); break;
-                            case '6': ToggleSwitch(5); break;
-                            case '7': ToggleSwitch(6); break;
-                            case '8': ToggleSwitch(7); break;
+                            switch (Console.ReadKey(true).KeyChar)
+                            {
+                                // 1-8: Toggling a switch
+                                case '1': ToggleSwitch(0); break;
+                                case '2': ToggleSwitch(1); break;
+                                case '3': ToggleSwitch(2); break;
+                                case '4': ToggleSwitch(3); break;
+                                case '5': ToggleSwitch(4); break;
+                                case '6': ToggleSwitch(5); break;
+                                case '7': ToggleSwitch(6); break;
+                                case '8': ToggleSwitch(7); break;
+                            }
+                        }
+                        else if (keypress.Key == ConsoleKey.A)
+                        {
+                            switch (Console.ReadKey(true).KeyChar)
+                            {
+                                case 's': // Sending an S-Record
+                                    Console.Write("Enter .srec to send: ");
+                                    var filename = Console.ReadLine();
+                                    var uploadFileWorker = new Thread(UploadFileWorker);
+                                    uploadFileWorker.Start(filename);
+                                    break;
+                            }
                         }
                     }
-                    // Handle Ctrl+A [somekey]
-                    if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
-                             keyPress.Key == ConsoleKey.OemPeriod)
-                    {
-                        Program.PanelManager.MoveToNextPanel();
-                    }
-                    else if (keyPress.Modifiers.HasFlag(ConsoleModifiers.Control) &&
-                             keyPress.Key == ConsoleKey.OemComma)
-                    {
-                        Program.PanelManager.MoveToPrevPanel();
-                    }
                     else
-                    {
-                        Program.PanelManager.SendInputToActivePanel(keyPress);
-                    }
+                        _rexBoard.Serial1.SendAsync(keypress.KeyChar);
                 }
             }
+        }
+
+        /// <summary>
+        /// Sends a file through the serial port.
+        /// </summary>
+        private void UploadFileWorker(object filename)
+        {
+            if (!File.Exists((string)filename))
+            {
+                return;
+            }
+
+            var reader = new StreamReader((string)filename);
+            while (!reader.EndOfStream)
+            {
+                string line = reader.ReadLine();
+                foreach (char c in line)
+                {
+                    _rexBoard.Serial1.Send(c);
+                }
+                _rexBoard.Serial1.Send('\n');
+            }
+            reader.Close();
         }
 
         /// <summary>
@@ -147,7 +167,8 @@ namespace RexSimulatorCLI
             LastClockRate = ticksSinceLastUpdate / timeSinceLastUpdate.TotalSeconds;
             _lastClockRateSmoothed = _lastClockRateSmoothed * (1.0 - rate) + LastClockRate * rate;
 
-            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%) | Panel: {2}", _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate, Program.PanelManager.ActivePanel.Name);
+            Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)",
+                _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate);
         }
 
         /// <summary>
