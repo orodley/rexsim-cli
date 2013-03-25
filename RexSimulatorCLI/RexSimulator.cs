@@ -56,6 +56,7 @@ namespace RexSimulatorCLI
                     Path = Path.GetTempPath(), Filter = Program.TempFileName
                 };
             watcher.Created += _watcher_Created;
+            watcher.EnableRaisingEvents = true; // Why isn't this on by default?
 
             _cpuWorker.Start();
             _inputWorker.Start();
@@ -184,12 +185,22 @@ namespace RexSimulatorCLI
         /// <param name="e"></param>
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            Thread.Sleep(100);
-            using (var tempFile = new StreamReader(Program.TempFileFullPath))
+            try
             {
-                Console.Out.WriteLine(tempFile.ReadLine());
-                File.Delete(Program.TempFileFullPath);
+                using (var tempFile = new StreamReader(Program.TempFileFullPath))
+                {
+                    Console.WriteLine(tempFile.ReadLine());
+                }
             }
+            catch (IOException)
+            {
+                // Damn, the file is still in use. Probably by the other process
+                // Let's just sleep, and then try again
+                Thread.Sleep(10);
+                _watcher_Created(sender, e);
+            }
+
+            File.Delete(Program.TempFileFullPath);
         }
 
         /// <summary>

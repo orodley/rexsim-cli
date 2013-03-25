@@ -24,7 +24,7 @@ namespace RexSimulatorCLI
                 else
                 {
                     // Write out args to temp file
-                    using (StreamWriter tempFile = new StreamWriter(TempFileFullPath))
+                    using (var tempFile = new StreamWriter(TempFileFullPath))
                     {
                         tempFile.WriteLine(string.Join(" ", args));
                     }
