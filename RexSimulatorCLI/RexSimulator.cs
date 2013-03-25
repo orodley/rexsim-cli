@@ -30,14 +30,14 @@ namespace RexSimulatorCLI
         {
             _rexBoard = new RexBoard();
 
-            //Load WRAMPmon into ROM
+            // Load WRAMPmon into ROM
             Stream wmon =
                 new MemoryStream(Encoding.ASCII.GetBytes(
                     File.ReadAllText(Path.Combine("Resources", "monitor.srec"))));
             _rexBoard.LoadSrec(wmon);
             wmon.Close();
             
-            //Set up the worker threads
+            // Set up the worker threads
             _cpuWorker = new Thread(CPUWorker);
             _inputWorker = new Thread(InputWorker);
 
@@ -47,8 +47,15 @@ namespace RexSimulatorCLI
             timer.Elapsed += timer_Elapsed;
             timer.Enabled = true;
 
-            //Set up system interfaces
+            // Set up system interfaces
             _serialPort1 = new BasicSerialPort(_rexBoard.Serial1);
+
+            // Watch for the temp file
+            var watcher = new FileSystemWatcher
+                {
+                    Path = Path.GetTempPath(), Filter = Program.TempFileName
+                };
+            watcher.Created += _watcher_Created;
 
             _cpuWorker.Start();
             _inputWorker.Start();
@@ -167,6 +174,22 @@ namespace RexSimulatorCLI
 
             Console.Title = string.Format("REX Board Simulator: Clock Rate: {0:0.000} MHz ({1:000}%)",
                 _lastClockRateSmoothed / 1e6, _lastClockRateSmoothed * 100 / TargetClockRate);
+        }
+
+        /// <summary>
+        /// Called when the temp file is created. Reads data from the temp file,
+        /// deletes it, and performs the appropriate action based on the args
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void _watcher_Created(object sender, FileSystemEventArgs e)
+        {
+            Thread.Sleep(100);
+            using (var tempFile = new StreamReader(Program.TempFileFullPath))
+            {
+                Console.Out.WriteLine(tempFile.ReadLine());
+                File.Delete(Program.TempFileFullPath);
+            }
         }
 
         /// <summary>
