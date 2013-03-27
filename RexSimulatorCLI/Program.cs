@@ -26,7 +26,7 @@ namespace RexSimulatorCLI
                     using (var tempOutFile = new StreamWriter(TempFileFullPath))
                     {
                         tempOutFile.Write(string.Join(" ", args));
-                        
+
                     }
 
                     /* This is kinda hackish...
@@ -35,31 +35,29 @@ namespace RexSimulatorCLI
                      * finished writing the returned data out to it, so we'll poll it until we can open it,
                      * then read all the data, print it, and delete the file
                      */
-                    
+
                     Thread.Sleep(50);
                     StreamReader tempInFile = null;
 
-                    bool readOutput = false;
- 
+                    var readOutput = false;
+
                     while (!readOutput)
                     {
                         try
                         {
                             tempInFile = new StreamReader(TempFileFullPath);
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-                        finally
-                        {
-                            Console.Write(tempInFile.ReadToEnd());
-                            tempInFile.Close();
-                            File.Delete(TempFileFullPath);
-
                             readOutput = true;
                         }
+                        catch
+                        {
+                            // File is still in use, probably by the other instance
+                            Thread.Sleep(10);
+                        }
                     }
+
+                    Console.Write(tempInFile.ReadToEnd());
+                    tempInFile.Close();
+                    File.Delete(TempFileFullPath);
                 }
             else
                 new RexSimulator();

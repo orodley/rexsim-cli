@@ -207,16 +207,12 @@ namespace RexSimulatorCLI
              * it, write our output, and then close it.
              */
             var reader = new StreamReader(tempFile);
-            var args = new Args(reader.ReadToEnd());
-            /* We'll do some stuff with args here later. For now just write a value to check it's
-               working correctly */
+            var args = new Args(reader.ReadToEnd(), _rexBoard);
 
-            const string output = @"received args";
-
-            tempFile.SetLength(output.Length);
+            tempFile.SetLength(args.Output.Length);
             tempFile.Seek(0, SeekOrigin.Begin);
 
-            foreach(char c in output)
+            foreach(char c in args.Output)
                 tempFile.WriteByte((byte)c);
         }
 
