@@ -20,7 +20,7 @@ namespace RexSimulatorCLI
         private static DateTime _lastTickCountUpdate = DateTime.Now;
         public static double LastClockRate = TargetClockRate;
         private static double _lastClockRateSmoothed = TargetClockRate;
-        private static bool _throttleCpu = true;
+        public static bool ThrottleCpu = true;
         
         private static bool _running = true;
 
@@ -75,7 +75,7 @@ namespace RexSimulatorCLI
                     _running ^= _stepping; //stop the CPU running if this is only supposed to do a single step.
                     
                     //Slow the processor down if need be
-                    if (_throttleCpu)
+                    if (ThrottleCpu)
                     {
                         if (stepCount++ >= stepsPerSleep)
                         {

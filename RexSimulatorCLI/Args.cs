@@ -35,6 +35,9 @@ namespace RexSimulatorCLI
             _argsList = argsString.Split(' ').ToList();
             _rexBoard = board;
 
+            Output = ""; /* Initialize to "" so that non-output-setting options don't
+                            cause a NullReferenceException */
+
             // There should only be one argument starting with "-" or "--"...
             if (_argsList.Count(_startsWithHyphen) != 1 ||
                 // ...and it should be at the start
@@ -48,6 +51,9 @@ namespace RexSimulatorCLI
                     case "registers":
                         _outputRegisters();
                         break;
+                    case "toggle-throttling":
+                        _toggleCpuThrottling();
+                        break;
                     default:
                         Output = UnknownOptionMessage + _argsList[0];
                         break;
@@ -58,6 +64,9 @@ namespace RexSimulatorCLI
                 {
                     case "r":
                         _outputRegisters();
+                        break;
+                    case "t":
+                        _toggleCpuThrottling();
                         break;
                     default:
                         Output = UnknownOptionMessage + _argsList[0];
@@ -76,6 +85,11 @@ namespace RexSimulatorCLI
                 sb.Append(string.Format("${0:D2}: {1:X8}\n",
                                         register, _rexBoard.CPU.mGpRegisters[(uint)register]));
             Output = sb.ToString();
+        }
+
+        private void _toggleCpuThrottling()
+        {
+            RexSimulator.ThrottleCpu = !RexSimulator.ThrottleCpu;
         }
     }
 }
