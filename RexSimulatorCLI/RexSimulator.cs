@@ -185,22 +185,39 @@ namespace RexSimulatorCLI
         /// <param name="e"></param>
         private void _watcher_Created(object sender, FileSystemEventArgs e)
         {
-            try
+            FileStream tempFile = null;
+            while (tempFile == null)
             {
-                using (var tempFile = new StreamReader(Program.TempFileFullPath))
+                try
                 {
-                    Console.WriteLine(tempFile.ReadLine());
+                    tempFile = new FileStream(Program.TempFileFullPath,
+                                              FileMode.Open, FileAccess.ReadWrite);
+                    /* Now that we've got the file, don't close it until we're done writing to it, as
+                       the other instance is itself constantly trying to open it now */
+                }
+                catch (IOException)
+                {
+                    /* Damn, the file is still in use. Probably by the other process
+                       Let's just sleep and then try again */
+                    Thread.Sleep(10);
                 }
             }
-            catch (IOException)
-            {
-                // Damn, the file is still in use. Probably by the other process
-                // Let's just sleep, and then try again
-                Thread.Sleep(10);
-                _watcher_Created(sender, e);
-            }
 
-            File.Delete(Program.TempFileFullPath);
+            /* Okay, we finally managed to open the file. Now let's read the args from it, clear
+             * it, write our output, and then close it.
+             */
+            var reader = new StreamReader(tempFile);
+            var args = new Args(reader.ReadToEnd());
+            /* We'll do some stuff with args here later. For now just write a value to check it's
+               working correctly */
+
+            const string output = @"received args";
+
+            tempFile.SetLength(output.Length);
+            tempFile.Seek(0, SeekOrigin.Begin);
+
+            foreach(char c in output)
+                tempFile.WriteByte((byte)c);
         }
 
         /// <summary>

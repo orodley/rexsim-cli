@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace RexSimulatorCLI
 {
@@ -13,8 +14,6 @@ namespace RexSimulatorCLI
 
         public static void Main(string[] args)
         {
-            RexSimulator rexSim;
-
             // Check if we're the only instance currently running
             Process otherInstance = GetOtherInstance();
 
@@ -24,13 +23,46 @@ namespace RexSimulatorCLI
                 else
                 {
                     // Write out args to temp file
-                    using (var tempFile = new StreamWriter(TempFileFullPath))
+                    using (var tempOutFile = new StreamWriter(TempFileFullPath))
                     {
-                        tempFile.WriteLine(string.Join(" ", args));
+                        tempOutFile.Write(string.Join(" ", args));
+                        
+                    }
+
+                    /* This is kinda hackish...
+                     * The other instance is repeatedly trying to open the file as we're writing to it, so
+                     * as soon as we close it, it opens it up again. It doesn't close it until it's
+                     * finished writing the returned data out to it, so we'll poll it until we can open it,
+                     * then read all the data, print it, and delete the file
+                     */
+                    
+                    Thread.Sleep(50);
+                    StreamReader tempInFile = null;
+
+                    bool readOutput = false;
+ 
+                    while (!readOutput)
+                    {
+                        try
+                        {
+                            tempInFile = new StreamReader(TempFileFullPath);
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+                        finally
+                        {
+                            Console.Write(tempInFile.ReadToEnd());
+                            tempInFile.Close();
+                            File.Delete(TempFileFullPath);
+
+                            readOutput = true;
+                        }
                     }
                 }
             else
-                rexSim = new RexSimulator();
+                new RexSimulator();
         }
 
         public static Process GetOtherInstance()
