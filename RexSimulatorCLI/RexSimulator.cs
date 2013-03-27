@@ -6,27 +6,27 @@ using RexSimulator.Hardware;
 
 namespace RexSimulatorCLI
 {
-    public class RexSimulator
+    public static class RexSimulator
     {
         private const long TargetClockRate = 4000000;
 
-        private readonly RexBoard _rexBoard;
-        private readonly Thread _cpuWorker;
-        private readonly Thread _inputWorker;
+        private static RexBoard _rexBoard;
+        private static Thread _cpuWorker;
+        private static Thread _inputWorker;
         
-        private readonly BasicSerialPort _serialPort1;
+        private static BasicSerialPort _serialPort1;
                 
-        private long _lastTickCount = 0;
-        private DateTime _lastTickCountUpdate = DateTime.Now;
-        public double LastClockRate = TargetClockRate;
-        private double _lastClockRateSmoothed = TargetClockRate;
-        private bool _throttleCpu = true;
+        private static long _lastTickCount = 0;
+        private static DateTime _lastTickCountUpdate = DateTime.Now;
+        public static double LastClockRate = TargetClockRate;
+        private static double _lastClockRateSmoothed = TargetClockRate;
+        private static bool _throttleCpu = true;
         
-        private bool _running = true;
+        private static bool _running = true;
 
-        private bool _stepping = false;
+        private static bool _stepping = false;
 
-        public RexSimulator ()
+        public static void Run()
         {
             _rexBoard = new RexBoard();
 
@@ -62,7 +62,7 @@ namespace RexSimulatorCLI
             _inputWorker.Start();
         }
 
-        private void CPUWorker()
+        private static void CPUWorker()
         {
             int stepCount = 0;
             int stepsPerSleep = 0;
@@ -90,7 +90,7 @@ namespace RexSimulatorCLI
             }
         }
 
-        private void InputWorker()
+        private static void InputWorker()
         {
             while (true)
             {
@@ -137,7 +137,7 @@ namespace RexSimulatorCLI
         /// <summary>
         /// Sends a file through the serial port.
         /// </summary>
-        private void UploadFileWorker(object filename)
+        private static void UploadFileWorker(object filename)
         {
             if (!File.Exists((string)filename))
             {
@@ -162,7 +162,7 @@ namespace RexSimulatorCLI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void timer_Elapsed(object sender, EventArgs e)
+        private static void timer_Elapsed(object sender, EventArgs e)
         {
             long ticksSinceLastUpdate = _rexBoard.TickCounter - _lastTickCount;
             TimeSpan timeSinceLastUpdate = DateTime.Now.Subtract(_lastTickCountUpdate);
@@ -183,7 +183,7 @@ namespace RexSimulatorCLI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void _watcher_Created(object sender, FileSystemEventArgs e)
+        private static void _watcher_Created(object sender, FileSystemEventArgs e)
         {
             FileStream tempFile = null;
             while (tempFile == null)
@@ -220,12 +220,12 @@ namespace RexSimulatorCLI
         /// Toggle the "switchNum"th switch from the left
         /// </summary>
         /// <param name="switchNum"></param>
-        private void ToggleSwitch(int switchNum)
+        private static void ToggleSwitch(int switchNum)
         {
             _rexBoard.Parallel.Switches ^= (128u >> switchNum);
         }
 
-        public void Step()
+        public static void Step()
         {
             while (!_rexBoard.Tick()) { }
         }

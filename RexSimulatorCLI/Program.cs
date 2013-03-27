@@ -60,7 +60,7 @@ namespace RexSimulatorCLI
                     File.Delete(TempFileFullPath);
                 }
             else
-                new RexSimulator();
+                RexSimulator.Run();
         }
 
         public static Process GetOtherInstance()
