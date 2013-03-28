@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RexSimulator.Hardware;
@@ -12,8 +13,8 @@ namespace RexSimulatorCLI
     /// action for that option. Everything in Output gets written out to standard
     /// out, so put any desired output from the option there
     /// 
-    /// Then add the long and short forms of the option to the switches in the
-    /// constructor. All you have to do in the case for your option is call your method
+    /// Then add the long and short forms of the option to _longOptionMap and
+    /// _shortOptionMap (initialized in the constructor)
     /// </summary>
     class Args
     {
@@ -23,6 +24,9 @@ namespace RexSimulatorCLI
         private readonly List<string> _argsList;
         private readonly RexBoard _rexBoard;
         public string Output { get; private set; }
+
+        private readonly Dictionary<string, Action> _shortOptionMap;
+        private readonly Dictionary<string, Action> _longOptionMap;
 
         /// <summary>
         /// Given a string containing args and a RexBoard, work out the appropriate
@@ -35,8 +39,22 @@ namespace RexSimulatorCLI
             _argsList = argsString.Split(' ').ToList();
             _rexBoard = board;
 
+            _shortOptionMap = new Dictionary<string, Action>
+                {
+                    {"r", _outputRegisters},
+                    {"t", _toggleCpuThrottling},
+                };
+
+            _longOptionMap = new Dictionary<string, Action>
+                {
+                    
+                    {"registers",         _outputRegisters},
+                    {"toggle-throttling", _toggleCpuThrottling},
+                };
+
             Output = ""; /* Initialize to "" so that non-output-setting options don't
                             cause a NullReferenceException */
+            
 
             // There should only be one argument starting with "-" or "--"...
             if (_argsList.Count(_startsWithHyphen) != 1 ||
@@ -44,35 +62,28 @@ namespace RexSimulatorCLI
                 _argsList.FindIndex(_startsWithHyphen) != 0)
             {
                 Output = InvalidInputMessage + string.Join(" ", _argsList);
+                return;
             }
-            else if (_argsList[0].StartsWith("--")) // Long option
-                switch (_argsList[0].Substring(2))
-                {
-                    case "registers":
-                        _outputRegisters();
-                        break;
-                    case "toggle-throttling":
-                        _toggleCpuThrottling();
-                        break;
-                    default:
-                        Output = UnknownOptionMessage + _argsList[0];
-                        break;
-                }
+
+            int substringStart;
+            Dictionary<string, Action> longOrShortMap;
+
+            if (_argsList[0].StartsWith("--")) // Long option
+            {
+                substringStart = 2;
+                longOrShortMap = _longOptionMap;
+            }
             else                                    // Short option
             {
-                switch (_argsList[0].Substring(1))
-                {
-                    case "r":
-                        _outputRegisters();
-                        break;
-                    case "t":
-                        _toggleCpuThrottling();
-                        break;
-                    default:
-                        Output = UnknownOptionMessage + _argsList[0];
-                        break;
-                }
+                substringStart = 1;
+                longOrShortMap = _shortOptionMap;
             }
+
+            Action action;
+            if (longOrShortMap.TryGetValue(_argsList[0].Substring(substringStart), out action))
+                action();
+            else
+                Output = UnknownOptionMessage + _argsList[0];
         }
 
         private bool _startsWithHyphen(string s) { return s.StartsWith("-"); }
