@@ -2,24 +2,30 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Linq;
 
 namespace RexSimulatorCLI
 {
     internal class Program
     {
-        public const string TempFileName = "REXSIMCLI_TEMP";
+        public  const string TempFileName = "REXSIMCLI_TEMP";
+        private const string PidFileName  = "REXSIMCLI_PID";
 
         public static string TempFileFullPath =
             Path.Combine(Path.GetTempPath(), TempFileName);
+        private static string PidFilePathMinusPid = // Needs a better name
+            Path.Combine(Path.GetTempPath(), PidFileName);
+        private static string PidFileFullPath =     // This too
+            PidFilePathMinusPid + Process.GetCurrentProcess().Id;
 
         public static void Main(string[] args)
         {
             // Check if we're the only instance currently running
-            Process otherInstance = GetOtherInstance();
+            int otherPid = GetOtherInstancePid();
 
-            if (otherInstance != null)
+            if (otherPid != -1)
                 if (args.Length == 0)
-                    Console.WriteLine(@"Another instance is already running with PID: " + otherInstance.Id);
+                    Console.WriteLine(@"Another instance is already running with PID: " + otherPid);
                 else
                 {
                     // Write out args to temp file
@@ -60,20 +66,26 @@ namespace RexSimulatorCLI
                     File.Delete(TempFileFullPath);
                 }
             else
+            {
+                // Upon CTRL+C, make sure the temp file gets cleaned up
+                Console.CancelKeyPress += (s, e) => File.Delete(PidFileFullPath);
+                File.Create(PidFileFullPath);
                 RexSimulator.Run();
+            }
         }
 
-        public static Process GetOtherInstance()
+        public static int GetOtherInstancePid()
         {
-            Process otherInstance = null;
-            var current = Process.GetCurrentProcess();
+            var files = Directory.EnumerateFiles(Path.GetTempPath());
+            string filename = files.ToList().Find(s =>
+                   s.StartsWith(PidFilePathMinusPid));
 
-            foreach (var process in Process.GetProcessesByName(current.ProcessName))
-                if (process.Id != current.Id)
-                    otherInstance = process;
-            return otherInstance;
+            if (filename == null)
+                return -1;
+            else
+                return int.Parse(
+						filename.Substring(PidFilePathMinusPid.Length));
         }
 
     }
 }
-
